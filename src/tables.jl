@@ -31,7 +31,7 @@ end
 Tables.materializer(::PersistenceDiagram) = PersistenceDiagram
 
 """
-    PersistenceDiagrams.table(::AbstractVector{<:PersistenceDiagram})
+    table(::AbstractVector{<:PersistenceDiagram})
 
 Wrap a vector of `PersistenceDiagram`s in a `PersistenceDiagramTable`, which satisfies the
 Tables.jl interface.

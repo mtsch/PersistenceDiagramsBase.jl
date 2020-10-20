@@ -8,7 +8,7 @@ and plotting.
 Can be used as a table with any function that uses the
 [`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface. If you want to use a
 collection of `PersistenceDiagram`s as a single table, use
-[`PersistenceDiagrams.table`](@ref) to convert them first. Note that only birth, death, dim,
+[`table`](@ref) to convert them first. Note that only birth, death, dim,
 and threshold are covered by the interface.
 
 # Example

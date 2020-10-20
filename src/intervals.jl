@@ -52,13 +52,13 @@ end
 
 Get the birth time of `interval`.
 """
-birth(int::PersistenceInterval) = getfield(int, :birth)
+birth(int::PersistenceInterval) = getfield(int, 1)
 """
     death(interval)
 
 Get the death time of `interval`.
 """
-death(int::PersistenceInterval) = getfield(int, :death)
+death(int::PersistenceInterval) = getfield(int, 2)
 """
     persistence(interval)
 

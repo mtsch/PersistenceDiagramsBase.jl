@@ -1,5 +1,6 @@
 module PersistenceDiagramsBase
 
+using Compat
 using Tables
 
 include("intervals.jl")
