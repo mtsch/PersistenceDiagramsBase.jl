@@ -1,4 +1,8 @@
-using PersistenceDiagrams
+using PersistenceDiagramsBase
+using PersistenceDiagramsBase:
+    PersistenceDiagram, PersistenceInterval,
+    birth, death, persistence, dim, threshold, birth_simplex, death_simplex, representative
+
 using Compat
 using DataFrames
 using Test
@@ -190,7 +194,7 @@ end
     @test nrow(df) == 3
     @test all(ismissing, df.threshold)
 
-    df = DataFrame(PersistenceDiagrams.table([diag1, diag2]))
+    df = DataFrame(PersistenceDiagramsBase.table([diag1, diag2]))
     @test names(df) == ["birth", "death", "dim", "threshold"]
     @test df.dim isa Vector{Int}
     @test df.threshold isa Vector{Union{Float64,Missing}}
