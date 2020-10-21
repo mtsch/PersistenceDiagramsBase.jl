@@ -6,10 +6,7 @@ Type for representing persistence diagrams. Behaves exactly like a vector of
 and plotting.
 
 Can be used as a table with any function that uses the
-[`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface. If you want to use a
-collection of `PersistenceDiagram`s as a single table, use
-[`table`](@ref) to convert them first. Note that only birth, death, dim,
-and threshold are covered by the interface.
+[`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface.
 
 # Example
 
@@ -39,25 +36,20 @@ julia> diagram.custom_metadata
 :a
 ```
 """
-struct PersistenceDiagram{P<:PersistenceInterval,M<:NamedTuple} <: AbstractVector{P}
-    intervals::Vector{P}
-    meta::M
+struct PersistenceDiagram <: AbstractVector{PersistenceInterval}
+    intervals::Vector{PersistenceInterval}
+    meta::NamedTuple
 end
 
-function PersistenceDiagram(intervals::Vector{<:PersistenceInterval}; kwargs...)
+function PersistenceDiagram(intervals::Vector{PersistenceInterval}; kwargs...)
     meta = (; kwargs...)
     return PersistenceDiagram(intervals, meta)
 end
-function PersistenceDiagram(intervals::AbstractVector{<:PersistenceInterval}; kwargs...)
+function PersistenceDiagram(intervals::AbstractVector{PersistenceInterval}; kwargs...)
     return PersistenceDiagram(collect(intervals); kwargs...)
 end
-function PersistenceDiagram(
-    pairs::AbstractVector{<:Tuple}, metas=Iterators.cycle((NamedTuple(),)); kwargs...
-)
-    intervals = map(pairs, metas) do t, m
-        PersistenceInterval(t; m...)
-    end
-    return PersistenceDiagram(intervals; kwargs...)
+function PersistenceDiagram(pairs::AbstractVector{<:Tuple}; kwargs...)
+    return PersistenceDiagram(PersistenceInterval.(pairs); kwargs...)
 end
 function PersistenceDiagram(table)
     rows = Tables.rows(table)

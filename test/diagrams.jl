@@ -1,7 +1,4 @@
 using PersistenceDiagramsBase
-using PersistenceDiagramsBase:
-    PersistenceDiagram, PersistenceInterval,
-    birth, death, persistence, dim, threshold, birth_simplex, death_simplex, representative
 
 using Compat
 using DataFrames
@@ -18,16 +15,6 @@ using Test
         @test int1 ≠ int2
         @test int1 == int3
         @test int1 < int2
-    end
-
-    @testset "Conversion" begin
-        M = @NamedTuple begin
-            birth_simplex::Union{Nothing,Symbol}
-            death_simplex::Symbol
-            representative::typeof(r)
-        end
-        T = PersistenceInterval{M}
-        @test typeof(convert(T, int3)) ≡ T
     end
 
     @testset "Comparison with tuples" begin
@@ -96,7 +83,12 @@ end
 
 @testset "PersistenceDiagram" begin
     diagram1 = PersistenceDiagram(
-        [(1, 3), (3, 4), (3, Inf)], [(; a=1), (; a=2), (; a=3)]; dim=1
+        [
+            PersistenceInterval(1, 3; a=1),
+            PersistenceInterval(3, 4; a=2),
+            PersistenceInterval(3, Inf; a=3),
+        ];
+        dim=1,
     )
     diagram2 = PersistenceDiagram([(1, 3), (3, 4), (3, Inf)]; threshold=0.3)
     diagram3 = PersistenceDiagram(
@@ -193,12 +185,6 @@ end
     @test names(df) == ["birth", "death", "dim", "threshold"]
     @test nrow(df) == 3
     @test all(ismissing, df.threshold)
-
-    df = DataFrame(PersistenceDiagramsBase.table([diag1, diag2]))
-    @test names(df) == ["birth", "death", "dim", "threshold"]
-    @test df.dim isa Vector{Int}
-    @test df.threshold isa Vector{Union{Float64,Missing}}
-    @test nrow(df) == 5
 
     table = Tables.columntable((dim=[0, 1], birth=[0, 0], death=[0, 0]))
     @test_throws ArgumentError PersistenceDiagram(table)
