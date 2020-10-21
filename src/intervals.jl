@@ -26,10 +26,10 @@ julia> interval.meta1
 :a
 ```
 """
-struct PersistenceInterval{M<:NamedTuple}
+struct PersistenceInterval
     birth::Float64
     death::Float64
-    meta::M
+    meta::NamedTuple
 end
 function PersistenceInterval(birth, death; kwargs...)
     meta = (; kwargs...)
@@ -43,22 +43,19 @@ function PersistenceInterval(int::PersistenceInterval; kwargs...)
     meta = (; kwargs...)
     return PersistenceInterval(Float64(int[1]), Float64(int[2]), meta)
 end
-function Base.convert(::Type{PersistenceInterval{M}}, int::PersistenceInterval) where {M}
-    return PersistenceInterval(int.birth, int.death, convert(M, int.meta))
-end
 
 """
     birth(interval)
 
 Get the birth time of `interval`.
 """
-birth(int::PersistenceInterval) = getfield(int, :birth)
+birth(int::PersistenceInterval) = getfield(int, 1)
 """
     death(interval)
 
 Get the death time of `interval`.
 """
-death(int::PersistenceInterval) = getfield(int, :death)
+death(int::PersistenceInterval) = getfield(int, 2)
 """
     persistence(interval)
 

@@ -6,10 +6,7 @@ Type for representing persistence diagrams. Behaves exactly like a vector of
 and plotting.
 
 Can be used as a table with any function that uses the
-[`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface. If you want to use a
-collection of `PersistenceDiagram`s as a single table, use
-[`PersistenceDiagrams.table`](@ref) to convert them first. Note that only birth, death, dim,
-and threshold are covered by the interface.
+[`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface.
 
 # Example
 
@@ -39,30 +36,25 @@ julia> diagram.custom_metadata
 :a
 ```
 """
-struct PersistenceDiagram{P<:PersistenceInterval,M<:NamedTuple} <: AbstractVector{P}
-    intervals::Vector{P}
-    meta::M
+struct PersistenceDiagram <: AbstractVector{PersistenceInterval}
+    intervals::Vector{PersistenceInterval}
+    meta::NamedTuple
 end
 
-function PersistenceDiagram(intervals::Vector{<:PersistenceInterval}; kwargs...)
+function PersistenceDiagram(intervals::Vector{PersistenceInterval}; kwargs...)
     meta = (; kwargs...)
     return PersistenceDiagram(intervals, meta)
 end
-function PersistenceDiagram(intervals::AbstractVector{<:PersistenceInterval}; kwargs...)
+function PersistenceDiagram(intervals::AbstractVector{PersistenceInterval}; kwargs...)
     return PersistenceDiagram(collect(intervals); kwargs...)
 end
-function PersistenceDiagram(
-    pairs::AbstractVector{<:Tuple}, metas=Iterators.cycle((NamedTuple(),)); kwargs...
-)
-    intervals = map(pairs, metas) do t, m
-        PersistenceInterval(t; m...)
-    end
-    return PersistenceDiagram(intervals; kwargs...)
+function PersistenceDiagram(pairs::AbstractVector{<:Tuple}; kwargs...)
+    return PersistenceDiagram(PersistenceInterval.(pairs); kwargs...)
 end
 function PersistenceDiagram(table)
     rows = Tables.rows(table)
     if isempty(rows)
-        return PersistenceDiagram([])
+        return PersistenceDiagram(PersistenceInterval[])
     else
         firstrow = first(rows)
         dim = hasproperty(firstrow, :dim) ? firstrow.dim : missing
@@ -71,10 +63,10 @@ function PersistenceDiagram(table)
             d = hasproperty(row, :dim) ? row.dim : missing
             t = hasproperty(row, :threshold) ? row.threshold : missing
             if !isequal(d, dim)
-                throw(ArgumentError("different `dim`s detected. Try splitting the table first."))
+                error("different `dim`s detected. Try splitting the table first.")
             end
             if !isequal(t, threshold)
-                throw(ArgumentError("different `threshold`s detected. Try splitting the table first."))
+                error("different `threshold`s detected. Try splitting the table first.")
             end
             PersistenceInterval(row.birth, row.death)
         end
@@ -82,49 +74,14 @@ function PersistenceDiagram(table)
     end
 end
 
-###
-### Printing
-###
-function show_intervals(io::IO, diag)
-    limit = get(io, :limit, false) ? first(displaysize(io)) : typemax(Int)
-    if length(diag) + 1 < limit
-        for i in eachindex(diag)
-            if isassigned(diag, i)
-                print(io, "\n ", diag[i])
-            else
-                print(io, "\n #undef")
-            end
-        end
-    else
-        for i in 1:(limit ÷ 2 - 2)
-            if isassigned(diag, i)
-                print(io, "\n ", diag[i])
-            else
-                print(io, "\n #undef")
-            end
-        end
-        print(io, "\n ⋮")
-        for i in (lastindex(diag) - limit ÷ 2 + 3):lastindex(diag)
-            if isassigned(diag, i)
-                print(io, "\n ", diag[i])
-            else
-                print(io, "\n #undef")
-            end
-        end
-    end
-end
 function Base.show(io::IO, diag::PersistenceDiagram)
+    return summary(io, diag)
+end
+function Base.summary(io::IO, diag::PersistenceDiagram)
     if haskey(diag.meta, :dim)
         print(io, length(diag), "-element ", dim(diag), "-dimensional PersistenceDiagram")
     else
         print(io, length(diag), "-element PersistenceDiagram")
-    end
-end
-function Base.show(io::IO, ::MIME"text/plain", diag::PersistenceDiagram)
-    print(io, diag)
-    if length(diag) > 0
-        print(io, ":")
-        show_intervals(io, diag.intervals)
     end
 end
 
@@ -158,9 +115,9 @@ function Base.getproperty(diag::PersistenceDiagram, key::Symbol)
 end
 function Base.propertynames(diag::PersistenceDiagram, private::Bool=false)
     if private
-        return tuple(propertynames(diag.meta)..., fieldnames(typeof(diag))...)
+        return tuple(:intervals, :meta, propertynames(diag.meta)...)
     else
-        return propertynames(diag.meta)
+        return tuple(:intervals, propertynames(diag.meta)...)
     end
 end
 

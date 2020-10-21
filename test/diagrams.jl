@@ -1,4 +1,5 @@
-using PersistenceDiagrams
+using PersistenceDiagramsBase
+
 using Compat
 using DataFrames
 using Test
@@ -14,22 +15,14 @@ using Test
         @test int1 ≠ int2
         @test int1 == int3
         @test int1 < int2
-    end
-
-    @testset "Conversion" begin
-        M = @NamedTuple begin
-            birth_simplex::Union{Nothing,Symbol}
-            death_simplex::Symbol
-            representative::typeof(r)
-        end
-        T = PersistenceInterval{M}
-        @test typeof(convert(T, int3)) ≡ T
+        @test isless(int3, int2)
     end
 
     @testset "Comparison with tuples" begin
         @test int1 == (1, 2)
         @test int2 == (1, Inf)
-        @test int4 == (1.0, 2.0)
+        @test (1.0, 2.0) == int4
+        @test int1 == int3
 
         @test PersistenceInterval((1, 2)) == int1
     end
@@ -39,8 +32,13 @@ using Test
         @test int1[2] == death(int1) == 2
         @test int3[1] == birth(int1) == 1
         @test int4[2] == death(int1) == 2
+        @test isfinite(int1)
+        @test !isfinite(int2)
+        @test persistence(int1) == 1
+        @test persistence(int2) == Inf
 
         @test eltype(int1) ≡ Float64
+        @test eltype(PersistenceInterval) ≡ Float64
         @test length(int1) == 2
         @test collect(int1) == [1, 2]
         @test tuple(int1...) ≡ (1.0, 2.0)
@@ -48,6 +46,8 @@ using Test
         @test lastindex(int1) == 2
         @test first(int1) == 1
         @test last(int1) == 2
+        @test Base.IteratorSize(int1) == Base.HasLength()
+        @test Base.IteratorEltype(int1) == Base.HasEltype()
 
         @test_throws BoundsError int2[0]
         @test_throws BoundsError int2[3]
@@ -92,11 +92,23 @@ end
 
 @testset "PersistenceDiagram" begin
     diagram1 = PersistenceDiagram(
-        [(1, 3), (3, 4), (3, Inf)], [(; a=1), (; a=2), (; a=3)]; dim=1
+        [
+            PersistenceInterval(1, 3; a=1),
+            PersistenceInterval(3, 4; a=2),
+            PersistenceInterval(3, Inf; a=3),
+        ];
+        dim=1,
     )
     diagram2 = PersistenceDiagram([(1, 3), (3, 4), (3, Inf)]; threshold=0.3)
     diagram3 = PersistenceDiagram(
-        [PersistenceInterval(1, 2), PersistenceInterval(3, 4), PersistenceInterval(3, Inf)];
+        view(
+            [
+                PersistenceInterval(1, 2),
+                PersistenceInterval(3, 4),
+                PersistenceInterval(3, Inf),
+            ],
+            1:3,
+        );
         a=1,
     )
 
@@ -138,6 +150,9 @@ end
         @test threshold(diagram2) == diagram2.threshold == 0.3
         @test diagram3.a == 1
 
+        @test propertynames(diagram1) == (:intervals, :dim)
+        @test propertynames(diagram1, true) == (:intervals, :meta, :dim)
+
         @test_throws ErrorException diagram1.threshold
         @test_throws ErrorException diagram2.dim
 
@@ -146,22 +161,24 @@ end
         @test diagram1[3].a == 3
     end
 
-    @testset "Printing" begin
-        print_text_plain(io, x) = show(io, MIME"text/plain"(), x)
+    if VERSION ≥ v"1.5.0"
+        @testset "Printing" begin
+            print_text_plain(io, x) = show(io, MIME"text/plain"(), x)
 
-        @test sprint(print, diagram1) == "3-element 1-dimensional PersistenceDiagram"
-        @test sprint(print_text_plain, diagram1) ==
-              "3-element 1-dimensional PersistenceDiagram:\n" *
-              " [1.0, 3.0)\n" *
-              " [3.0, 4.0)\n" *
-              " [3.0, ∞)"
+            @test sprint(print, diagram1) == "3-element 1-dimensional PersistenceDiagram"
+            @test sprint(print_text_plain, diagram1) ==
+                  "3-element 1-dimensional PersistenceDiagram:\n" *
+                  " [1.0, 3.0)\n" *
+                  " [3.0, 4.0)\n" *
+                  " [3.0, ∞)"
 
-        @test sprint(print, diagram2) == "3-element PersistenceDiagram"
-        @test sprint(print_text_plain, diagram2) ==
-              "3-element PersistenceDiagram:\n" *
-              " [1.0, 3.0)\n" *
-              " [3.0, 4.0)\n" *
-              " [3.0, ∞)"
+            @test sprint(print, diagram2) == "3-element PersistenceDiagram"
+            @test sprint(print_text_plain, diagram2) ==
+                  "3-element PersistenceDiagram:\n" *
+                  " [1.0, 3.0)\n" *
+                  " [3.0, 4.0)\n" *
+                  " [3.0, ∞)"
+        end
     end
 end
 
@@ -190,18 +207,29 @@ end
     @test nrow(df) == 3
     @test all(ismissing, df.threshold)
 
-    df = DataFrame(PersistenceDiagrams.table([diag1, diag2]))
-    @test names(df) == ["birth", "death", "dim", "threshold"]
-    @test df.dim isa Vector{Int}
-    @test df.threshold isa Vector{Union{Float64,Missing}}
-    @test nrow(df) == 5
-
-    table = Tables.columntable((dim=[0, 1], birth=[0, 0], death=[0, 0]))
-    @test_throws ArgumentError PersistenceDiagram(table)
-    table = Tables.columntable((threshold=[0, 1], birth=[0, 0], death=[0, 0]))
-    @test_throws ArgumentError PersistenceDiagram(table)
     table = Tables.columntable((threshold=[1, 1], birth=[0, 0], death=[0, 0]))
     diagram = PersistenceDiagram(table)
     @test ismissing(dim(diagram))
     @test threshold(diagram) == 1
+
+    table = Tables.columntable((dim=[1, 1], birth=[0, 0], death=[0, 0]))
+    diagram = PersistenceDiagram(table)
+    @test ismissing(threshold(diagram))
+    @test dim(diagram) == 1
+
+    table = Tables.columntable((birth=[], death=[]))
+    @test isempty(PersistenceDiagram(table))
+
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        birth=[1, 1], death=[2, 2], threshold=[1, 2]
+    )))
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        birth=[1, 1], death=[2, 2], dim=[1, 2]
+    )))
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        death=[2, 2], dim=[1, 1]
+    )))
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        birth=[2, 2], dim=[1, 1]
+    )))
 end
