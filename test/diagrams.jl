@@ -152,22 +152,24 @@ end
         @test diagram1[3].a == 3
     end
 
-    @testset "Printing" begin
-        print_text_plain(io, x) = show(io, MIME"text/plain"(), x)
+    if VERSION ≥ v"1.5.0"
+        @testset "Printing" begin
+            print_text_plain(io, x) = show(io, MIME"text/plain"(), x)
 
-        @test sprint(print, diagram1) == "3-element 1-dimensional PersistenceDiagram"
-        @test sprint(print_text_plain, diagram1) ==
-              "3-element 1-dimensional PersistenceDiagram:\n" *
-              " [1.0, 3.0)\n" *
-              " [3.0, 4.0)\n" *
-              " [3.0, ∞)"
+            @test sprint(print, diagram1) == "3-element 1-dimensional PersistenceDiagram"
+            @test sprint(print_text_plain, diagram1) ==
+                  "3-element 1-dimensional PersistenceDiagram:\n" *
+                  " [1.0, 3.0)\n" *
+                  " [3.0, 4.0)\n" *
+                  " [3.0, ∞)"
 
-        @test sprint(print, diagram2) == "3-element PersistenceDiagram"
-        @test sprint(print_text_plain, diagram2) ==
-              "3-element PersistenceDiagram:\n" *
-              " [1.0, 3.0)\n" *
-              " [3.0, 4.0)\n" *
-              " [3.0, ∞)"
+            @test sprint(print, diagram2) == "3-element PersistenceDiagram"
+            @test sprint(print_text_plain, diagram2) ==
+                  "3-element PersistenceDiagram:\n" *
+                  " [1.0, 3.0)\n" *
+                  " [3.0, 4.0)\n" *
+                  " [3.0, ∞)"
+        end
     end
 end
 
@@ -209,16 +211,16 @@ end
     table = Tables.columntable((birth=[], death=[]))
     @test isempty(PersistenceDiagram(table))
 
-    @test_throws ErrorException PersistenceDiagram(
-        Tables.columntable((birth=[1, 1], death=[2, 2], threshold=[1, 2]))
-    )
-    @test_throws ErrorException PersistenceDiagram(
-        Tables.columntable((birth=[1, 1], death=[2, 2], dim=[1, 2]))
-    )
-    @test_throws ErrorException PersistenceDiagram(
-        Tables.columntable((death=[2, 2], dim=[1, 1]))
-    )
-    @test_throws ErrorException PersistenceDiagram(
-        Tables.columntable((birth=[2, 2], dim=[1, 1]))
-    )
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        birth=[1, 1], death=[2, 2], threshold=[1, 2]
+    )))
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        birth=[1, 1], death=[2, 2], dim=[1, 2]
+    )))
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        death=[2, 2], dim=[1, 1]
+    )))
+    @test_throws ErrorException PersistenceDiagram(Tables.columntable((
+        birth=[2, 2], dim=[1, 1]
+    )))
 end
