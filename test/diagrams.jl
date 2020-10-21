@@ -15,12 +15,14 @@ using Test
         @test int1 ≠ int2
         @test int1 == int3
         @test int1 < int2
+        @test isless(int3, int2)
     end
 
     @testset "Comparison with tuples" begin
         @test int1 == (1, 2)
         @test int2 == (1, Inf)
-        @test int4 == (1.0, 2.0)
+        @test (1.0, 2.0) == int4
+        @test int1 == int3
 
         @test PersistenceInterval((1, 2)) == int1
     end
@@ -30,8 +32,13 @@ using Test
         @test int1[2] == death(int1) == 2
         @test int3[1] == birth(int1) == 1
         @test int4[2] == death(int1) == 2
+        @test isfinite(int1)
+        @test !isfinite(int2)
+        @test persistence(int1) == 1
+        @test persistence(int2) == Inf
 
         @test eltype(int1) ≡ Float64
+        @test eltype(PersistenceInterval) ≡ Float64
         @test length(int1) == 2
         @test collect(int1) == [1, 2]
         @test tuple(int1...) ≡ (1.0, 2.0)
@@ -39,6 +46,8 @@ using Test
         @test lastindex(int1) == 2
         @test first(int1) == 1
         @test last(int1) == 2
+        @test Base.IteratorSize(int1) == Base.HasLength()
+        @test Base.IteratorEltype(int1) == Base.HasEltype()
 
         @test_throws BoundsError int2[0]
         @test_throws BoundsError int2[3]
