@@ -74,49 +74,14 @@ function PersistenceDiagram(table)
     end
 end
 
-###
-### Printing
-###
-function show_intervals(io::IO, diag)
-    limit = get(io, :limit, false) ? first(displaysize(io)) : typemax(Int)
-    if length(diag) + 1 < limit
-        for i in eachindex(diag)
-            if isassigned(diag, i)
-                print(io, "\n ", diag[i])
-            else
-                print(io, "\n #undef")
-            end
-        end
-    else
-        for i in 1:(limit ÷ 2 - 2)
-            if isassigned(diag, i)
-                print(io, "\n ", diag[i])
-            else
-                print(io, "\n #undef")
-            end
-        end
-        print(io, "\n ⋮")
-        for i in (lastindex(diag) - limit ÷ 2 + 3):lastindex(diag)
-            if isassigned(diag, i)
-                print(io, "\n ", diag[i])
-            else
-                print(io, "\n #undef")
-            end
-        end
-    end
-end
 function Base.show(io::IO, diag::PersistenceDiagram)
+    return summary(io, diag)
+end
+function Base.summary(io::IO, diag::PersistenceDiagram)
     if haskey(diag.meta, :dim)
         print(io, length(diag), "-element ", dim(diag), "-dimensional PersistenceDiagram")
     else
         print(io, length(diag), "-element PersistenceDiagram")
-    end
-end
-function Base.show(io::IO, ::MIME"text/plain", diag::PersistenceDiagram)
-    print(io, diag)
-    if length(diag) > 0
-        print(io, ":")
-        show_intervals(io, diag.intervals)
     end
 end
 
