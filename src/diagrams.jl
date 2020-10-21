@@ -54,7 +54,7 @@ end
 function PersistenceDiagram(table)
     rows = Tables.rows(table)
     if isempty(rows)
-        return PersistenceDiagram([])
+        return PersistenceDiagram(PersistenceInterval[])
     else
         firstrow = first(rows)
         dim = hasproperty(firstrow, :dim) ? firstrow.dim : missing
@@ -63,10 +63,10 @@ function PersistenceDiagram(table)
             d = hasproperty(row, :dim) ? row.dim : missing
             t = hasproperty(row, :threshold) ? row.threshold : missing
             if !isequal(d, dim)
-                throw(ArgumentError("different `dim`s detected. Try splitting the table first."))
+                error("different `dim`s detected. Try splitting the table first.")
             end
             if !isequal(t, threshold)
-                throw(ArgumentError("different `threshold`s detected. Try splitting the table first."))
+                error("different `threshold`s detected. Try splitting the table first.")
             end
             PersistenceInterval(row.birth, row.death)
         end
@@ -115,9 +115,9 @@ function Base.getproperty(diag::PersistenceDiagram, key::Symbol)
 end
 function Base.propertynames(diag::PersistenceDiagram, private::Bool=false)
     if private
-        return tuple(propertynames(diag.meta)..., fieldnames(typeof(diag))...)
+        return tuple(:intervals, :meta, propertynames(diag.meta)...)
     else
-        return propertynames(diag.meta)
+        return tuple(:intervals, propertynames(diag.meta)...)
     end
 end
 

@@ -92,7 +92,14 @@ end
     )
     diagram2 = PersistenceDiagram([(1, 3), (3, 4), (3, Inf)]; threshold=0.3)
     diagram3 = PersistenceDiagram(
-        [PersistenceInterval(1, 2), PersistenceInterval(3, 4), PersistenceInterval(3, Inf)];
+        view(
+            [
+                PersistenceInterval(1, 2),
+                PersistenceInterval(3, 4),
+                PersistenceInterval(3, Inf),
+            ],
+            1:3,
+        );
         a=1,
     )
 
@@ -133,6 +140,9 @@ end
         @test dim(diagram1) == diagram1.dim == 1
         @test threshold(diagram2) == diagram2.threshold == 0.3
         @test diagram3.a == 1
+
+        @test propertynames(diagram1) == (:intervals, :dim)
+        @test propertynames(diagram1, true) == (:intervals, :meta, :dim)
 
         @test_throws ErrorException diagram1.threshold
         @test_throws ErrorException diagram2.dim
@@ -186,12 +196,29 @@ end
     @test nrow(df) == 3
     @test all(ismissing, df.threshold)
 
-    table = Tables.columntable((dim=[0, 1], birth=[0, 0], death=[0, 0]))
-    @test_throws ArgumentError PersistenceDiagram(table)
-    table = Tables.columntable((threshold=[0, 1], birth=[0, 0], death=[0, 0]))
-    @test_throws ArgumentError PersistenceDiagram(table)
     table = Tables.columntable((threshold=[1, 1], birth=[0, 0], death=[0, 0]))
     diagram = PersistenceDiagram(table)
     @test ismissing(dim(diagram))
     @test threshold(diagram) == 1
+
+    table = Tables.columntable((dim=[1, 1], birth=[0, 0], death=[0, 0]))
+    diagram = PersistenceDiagram(table)
+    @test ismissing(threshold(diagram))
+    @test dim(diagram) == 1
+
+    table = Tables.columntable((birth=[], death=[]))
+    @test isempty(PersistenceDiagram(table))
+
+    @test_throws ErrorException PersistenceDiagram(
+        Tables.columntable((birth=[1, 1], death=[2, 2], threshold=[1, 2]))
+    )
+    @test_throws ErrorException PersistenceDiagram(
+        Tables.columntable((birth=[1, 1], death=[2, 2], dim=[1, 2]))
+    )
+    @test_throws ErrorException PersistenceDiagram(
+        Tables.columntable((death=[2, 2], dim=[1, 1]))
+    )
+    @test_throws ErrorException PersistenceDiagram(
+        Tables.columntable((birth=[2, 2], dim=[1, 1]))
+    )
 end
