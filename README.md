@@ -1,6 +1,6 @@
 # PersistenceDiagramsBase.jl
 
-[![Build Status](https://travis-ci.com/mtsch/PersistenceDiagramsBase.jl.svg?branch=master)](https://travis-ci.com/mtsch/PersistenceDiagramsBase.jl)
+[![Build Status](https://github.com/mtsch/PersistenceDiagramsBase.jl/workflows/Test/badge.svg)](https://github.com/mtsch/PersistenceDiagramsBase.jl/actions?query=workflow%3ATest)
 [![Coverage Status](https://coveralls.io/repos/github/mtsch/PersistenceDiagramsBase.jl/badge.svg?branch=master)](https://coveralls.io/github/mtsch/PersistenceDiagramsBase.jl?branch=master)
 
 A minimal package that only defines `PersistenceDiagram`s.
