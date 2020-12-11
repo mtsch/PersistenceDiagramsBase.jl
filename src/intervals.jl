@@ -1,9 +1,9 @@
 """
     PersistenceInterval
 
-The type that represents a persistence interval. It behaves exactly like a `Tuple{Float64,
-Float64}`, but can have meta data attached to it. The metadata is accessible
-with `getproperty`.
+Type for representing persistence intervals. It behaves exactly like a `Tuple{Float64,
+Float64}`, but can have meta data attached to it. The metadata is accessible with
+`getproperty` or the dot syntax.
 
 # Example
 
@@ -62,6 +62,13 @@ death(int::PersistenceInterval) = getfield(int, 2)
 Get the persistence of `interval`, which is equal to `death - birth`.
 """
 persistence(int::PersistenceInterval) = death(int) - birth(int)
+
+"""
+    midlife(interval)
+
+Get the midlife of the `interval`, which is equal to `(birth + death) / 2`.
+"""
+midlife(int::PersistenceInterval) = (birth(int) + death(int)) / 2
 
 Base.isfinite(int::PersistenceInterval) = isfinite(death(int))
 
