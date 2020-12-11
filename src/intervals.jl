@@ -66,9 +66,9 @@ persistence(int::PersistenceInterval) = death(int) - birth(int)
 """
     midlife(interval)
 
-Get the midlife of the `interval`, which is equal to `(birth + death)/2`.
+Get the midlife of the `interval`, which is equal to `(birth + death) / 2`.
 """
-midlife(int::PersistenceInterval) = (birth(int) + death(int))/2
+midlife(int::PersistenceInterval) = (birth(int) + death(int)) / 2
 
 Base.isfinite(int::PersistenceInterval) = isfinite(death(int))
 
