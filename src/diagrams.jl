@@ -1,12 +1,13 @@
 """
-    PersistenceDiagram{P<:PersistenceInterval} <: AbstractVector{P}
+    PersistenceDiagram <: AbstractVector{PersistenceInterval}
 
 Type for representing persistence diagrams. Behaves exactly like a vector of
-`PersistenceInterval`s, but is can have metadata attached to it and supports pretty printing
-and plotting.
+`PersistenceInterval`s, but can have additional metadata attached to it. It supports pretty
+printing and plotting.
 
 Can be used as a table with any function that uses the
-[`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface.
+[`Tables.jl`](https://github.com/JuliaData/Tables.jl) interface. Note that using it as a
+table will only keep interval endpoints and the `dim` and `threshold` attributes.
 
 # Example
 
