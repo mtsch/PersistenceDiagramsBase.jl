@@ -36,6 +36,8 @@ using Test
         @test !isfinite(int2)
         @test persistence(int1) == 1
         @test persistence(int2) == Inf
+        @test midlife(int1) == 1.5
+        @test midlife(int2) == Inf
 
         @test eltype(int1) ≡ Float64
         @test eltype(PersistenceInterval) ≡ Float64
